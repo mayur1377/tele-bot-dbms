@@ -1,0 +1,40 @@
+CREATE TABLE mytable(
+   Timestamp         VARCHAR(19) NOT NULL PRIMARY KEY
+  ,Email_Address     VARCHAR(32) NOT NULL
+  ,Name              VARCHAR(20) NOT NULL
+  ,USN               VARCHAR(10) NOT NULL
+  ,Branch            VARCHAR(13) NOT NULL
+  ,Phone_No          INTEGER  NOT NULL
+  ,BTech_Year        VARCHAR(8) NOT NULL
+  ,Genre_of_Singing_ VARCHAR(50) NOT NULL
+);
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 13:12:48','0adyajha@gmail.com','Adya Jha','4SI22CS134','Cse',7488472023,'1st year','Bollywood and classical');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 18:11:47','aishwaryaacharyapk2004@gmail.com','Aishwarya Acharya PK','4SI22IS069','ISE',6363099766,'1st year','Classical and filmy');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 19:08:31','akashagadi1910@gmail.com','Akash S Agadi','4SI22AD059','AIDS',9844584717,'1st year','Romantic, high pitch songs n play some instruments');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/21/2022 21:07:50','bhaskarkashyap19@gmail.com','Bhaskar Kashyap T P','4SI22EI007','EIE',8073878156,'1st year','Film songs');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/29/2022 21:19:35','bhavanaganga152004@gmail.com','Bhavana Ganga K T','4SI22AD039','AIDS',6361976680,'1st year','Melody');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/20/2022 22:18:44','chanduganiga5@gmail.com','Chandana  ganiga','4SI22BT006','BT',7483353546,'1st year','Classical');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/20/2022 20:49:11','devanandchinmayee@gmail.com','Chinmayee D','4SI22CS149','CSE',7892681321,'1st year','Folk song');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 18:21:09','kart99006@gmail.com','Karthik H','4SI22IS071','ISE',9916175155,'1st year','Don''t know');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 19:06:40','keerthana11.keerti@gmail.com','Keerthana R','4SI22EC019','ECE',8431410370,'1st year','Kannada (melody)');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/29/2022 10:48:16','ks040647@gmail.com','Keerthana S','4SI22CS174','CSE',9341850360,'1st year','Vocalist (melody)');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 18:29:48','keerthana1217.raj@gmail.com','Keerthana.S.Raj','4SI22EC004','ECE',6362391836,'1st year','Carnatic and light music');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('1/3/2023 20:40:17','mpjacksonkirtanraga@gmail.com','Kirtan Raga','4SI22CV041','CV',8296634607,'1st year','-');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/29/2022 11:07:16','kowstubha11@gmail.com','Kowstubha. L','4SI22CS094','CSE',6363994886,'1st year','Any songs');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/29/2022 10:41:05','prajwalgururaj1432@gmail.com','Prajwal G Harithasa','4SI22CS110','CSE',9731711833,'1st year','Drums instrument');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/22/2022 15:48:58','prakhar.p.1608@gmail.com','Prakhar Prakash','4SI22CS127','CSE',9569369715,'1st year','Instrumental');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/21/2022 17:12:37','praneethhmitra@gmail.com','Praneeth H Mitra','4SI22AM034','AIML',6364025503,'1st Year','Classical,Movie songs,Lite music');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/26/2022 9:06:34','rakshitharoopa4@gmail.com','Rakshitha.N','4SI22CS189','CSE',8867057553,'1st year','Indian film pop');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/28/2022 20:24:05','rimjhimghoshal75755@gmail.com','Rimjhim Ghoshal','4SI22CS060','CSE',7061929890,'1st year','Bollywood');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 20:14:26','connect2sannidhi@gmail.com','Sannidhi Srivastava','4SI22CS119','CSE',9875594828,'1st Year','Bollywood, Western');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 23:13:16','vermakaushal246@gmail.com','Satyam Verma','4SI22IS044','ISE',9667610940,'1st year','Soft melodious songs');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/20/2022 22:15:16','shalmalagnadig2003@gmail.com','Shalmala g nadig','4SI22AD002','AIDS',9019281825,'1st year','Classical');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 18:13:55','shivani.yargol712@gmail.com','Shivani Yargol','4SI22AM005','AIML',7899700964,'1st year','Bollywood pop');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/25/2022 15:15:50','suchithrabs3@gmail.com','Suchithra B S','4SI22IS103','ISE',9731241864,'1st year','Folk classical western');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/30/2022 9:45:46','sinha.vinayak2207@gmail.com','Tejaswi Sinha','4SI22IS026','ISE',9113166099,'1st year','Guitar');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/29/2022 13:33:27','thanushreetrishna@gmail.com','Thanushree D','4SI22EC109','ECE',9986172448,'1st year','Love (Melody)');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/18/2022 8:08:21','crananya2@gmail.com','C. R ANANYA','4SI22CS055','CSE',8792651820,'1st year','Classical');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 19:06:22','varshajgowda6924@gmail.com','VARSHA J','4SI22EC096','ECE',7019801915,'1st year','Melody song (kannada)');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/16/2022 16:20:24','obamabilladon@gmail.com','Bathala Poshetti','1SI11CH015','Chemical Engg',7842662645,'2nd year','Hard rock Death metal with Indian classical');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/27/2022 12:35:29','nagarajmithu30@gmail.com','Mithun GN','1SI21CS062','CSE',8296157516,'2nd year','Melody');
+INSERT INTO mytable(Timestamp,Email_Address,Name,USN,Branch,Phone_No,BTech_Year,Genre_of_Singing_) VALUES ('12/26/2022 10:07:18','sharadhaganesh31@gmail.com','Samiha Reddy','1si21ei035','EIE',9008790137,'2nd year','Light Indian');
