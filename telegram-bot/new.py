@@ -4,6 +4,8 @@ import json
 import sqlite3
 import re
 import time
+import requests
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
 from telegram import __version__ as TG_VER
 try:
@@ -27,7 +29,7 @@ from telegram.ext import (
 )
 conn = sqlite3.connect("students.db")
 cursor = conn.cursor()
-# cursor.execute("CREATE TABLE studentss ( usn STRING PRIMARY KEY, name STRING, year STRING , branch STRING , number STRING , email STRING)")
+# cursor.execute("CREATE TABLE studentss ( teleid STRING PRIMARY KEY , usn STRING, name STRING, year STRING , branch STRING , number STRING , email STRING)")
 # conn.commit()
 
 
@@ -42,7 +44,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-OPTION ,NAME , BRANCH ,USN ,YEAR  , CONTACT ,EMAIL  ,CLUBIN , SKILLENTER ,STUDENTEND , SKILLUPDATE ,  ADMINNAME  , ADMINPW ,ADMININ , GETUSN ,  SEARCHUSN ,  CLUBENTER ,   CLUBPW   ,CLUBOPT ,  CLUBNEWPW ,                  LINKEDIN ,  DESC   , INTREST , INTREST2 , HELPER , GENDER  , SEARCH , SHOWREQ , DISPLAYUSER , DISPLAYOPTION= range(30)
+OPTION ,NAME , BRANCH ,USN ,YEAR  , CONTACT ,EMAIL  ,CLUBIN , SKILLENTER ,STUDENTEND ,SEARCHUSNCLUB , SENDMSG ,  SKILLUPDATE ,  ADMINNAME  , ADMINPW ,ADMININ , GETUSN ,  SEARCHUSN ,  CLUBENTER ,   CLUBPW   ,CLUBOPT ,  CLUBNEWPW , INTREST2  , GENDER  , SEARCH , SHOWREQ  = range(26)
 students={}
 temp={}
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -64,8 +66,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     }
     reply_keyboard = [["STUDENT", "CLUB ADMIN" , "ADMIN"]]
     await update.message.reply_text(
-            "Hey there ! Welcome ! \n\n"
-            "Let me know if you are a student or a club member first!" 
+        """Hello PEEPs ,  Welcome to SKILL FINDER!\nLet me know if you are a\nStudent , Club Member or Admin"""
              ,  reply_markup=ReplyKeyboardMarkup(
         reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
             ),
@@ -93,7 +94,7 @@ async def option (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     students[str(update.effective_user.id)]["email"]=result[6]
                     reply_keyboard = [["UPDATE ", "LOGOUT"]]
                     await update.message.reply_text(
-                        "WELCOME BACK !"+result[2] + "WHAT DO YOU WANT ME TO DO?" 
+                        "WELCOME BACK "+result[2] + "! \nWHAT DO YOU WANT ME TO DO?" 
                     ,  reply_markup=ReplyKeyboardMarkup(
                     reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
                     ),
@@ -101,14 +102,14 @@ async def option (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     return STUDENTEND
             else: 
                 await update.message.reply_text(
-                "WELCOME FRESHER ! ENTER USN"
+                "Looks like you are a new user! \nLet's get you registered first!😊"
                 )
                 return USN            
         
     elif(option=="CLUB ADMIN"):
         reply_keyboard = [["EXISTING CLUB", "NEW CLUB"]]
         await update.message.reply_text(
-            "HEY CLUB ADMIN! LET US GET YOU STARTED !\n\n"
+            "HEY CLUB ADMIN! CHOOSE OPTION FROM BELOW !\n\n"
              ,  reply_markup=ReplyKeyboardMarkup(
         reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
         ),
@@ -116,49 +117,10 @@ async def option (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return CLUBIN   
     elif(option=="ADMIN"):
         await update.message.reply_text(
-        "enter admin username"
+        "Please enter admin username"
         )
         return ADMINNAME
         
-    
-
-
-        # await update.message.reply_text("FINDING USERS FOR YOU")
-        # x=str(update.effective_user.id)
-        # cursor.execute("SELECT intrest FROM users2 WHERE  id=?" , (x , ))
-        # rows = cursor.fetchone()
-        # message=rows[0]
-        # intrest_list=message.split(',')
-        # users[str(update.effective_user.id)]["user"]={}
-        # users[str(update.effective_user.id)]["x"]=0
-        # for i in intrest_list : 
-        #     query = "SELECT * FROM users2 WHERE intrest LIKE '%{}%'".format(i)
-        #     cursor.execute(query)
-        #     rows = cursor.fetchall()
-        #     for row in rows:
-        #         id = row[0]
-        #         name = row[1]
-        #         bio = row[2]
-        #         linkedin = row[3]
-        #         intrest= row[4]
-        #         users[str(update.effective_user.id)]["user"][users[str(update.effective_user.id)]["x"]]= {
-        #             "id" : id , 
-        #             "name": name,
-        #             "bio": bio,
-        #             "linkedin": linkedin,
-        #             "intrest": intrest
-        #         }
-        #         users[str(update.effective_user.id)]["x"]+=1
-        # if(len(users)==0):
-        #     await update.message.reply_text("NO USERS FOUND , MAYBE TRY AGAIN LATER ?")
-        #     return HELPER
-        # else : 
-        #     # print("there are the potential user \n")
-        #     # print(users[str(update.effective_user.id)]["user"])
-        #     users[str(update.effective_user.id)]["keys"]=list( users[str(update.effective_user.id)]["user"].keys())
-        #     random.shuffle(users[str(update.effective_user.id)]["keys"])
-        #     users[str(update.effective_user.id)]["size"]=0
-        #     return DISPLAYUSER
 
 
 async def usn (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -166,12 +128,12 @@ async def usn (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if(len(studentusn)==10):
             students[str(update.effective_user.id)]["usn"]=studentusn.upper()
             await update.message.reply_text(
-            "cool , NAME?"
+            "WHAT'S YOUR NAME!?"
             )
             return NAME
     else:
             await update.message.reply_text(
-            "ENTER PROPER USN"
+            "PLEASE PROVIDE PROPER USN 🤨"
             )
             return USN
 
@@ -179,15 +141,15 @@ async def usn (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def name (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     studentname=update.message.text
     students[str(update.effective_user.id)]["name"]=studentname.upper()
-    if(len(studentname)<5):
+    if(len(studentname)<=4):
         await update.message.reply_text(
-        "THAT DOSENT SEEM LIKE A NAME , PLEASE ENTER PROPER ONE"
+        "THAT DOSENT SEEM LIKE A NAME , PLEASE ENTER PROPER ONE 🙂"
         )
         return NAME
     else :         
         await update.message.reply_text(
-        "Nice to meet you " + studentname + "!\n"
-        "Enter YOUR YEAR"
+        "Nice to meet you " + studentname + "! ☺\n"
+        "WHICH YEAR ARE YOU IN NOW?"
         )
         return YEAR
 
@@ -199,7 +161,7 @@ async def year (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if(studentyear>="1" and studentyear<="4"):
         students[str(update.effective_user.id)]["year"]=studentyear.upper()
         await update.message.reply_text(
-            "COOL , ENTER BRANCH?"
+            "WHICH BRANCH ARE YOU IN!?"
         )
         return BRANCH
 
@@ -210,7 +172,7 @@ async def year (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     #     return YEAR
     else : 
         await update.message.reply_text(
-            "enter proper year"
+             "PLEASE ENTER A PROPER YEAR \nie : 1,2,3 or 4  🤨"
         )
         return YEAR
 
@@ -218,7 +180,7 @@ async def branch (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     studentbranch=update.message.text
     students[str(update.effective_user.id)]["branch"]=studentbranch.upper()
     await update.message.reply_text(
-        "cool , NUMBER ?"
+        "What is your phone number?"
     )
     return CONTACT
 
@@ -227,12 +189,12 @@ async def contact (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if(len(studentnumber)==10 and studentnumber.isdigit()):
         students[str(update.effective_user.id)]["contact"]=studentnumber
         await update.message.reply_text(
-            "cool , EMAIL"
+            "Let me know you email!"
         )
         return EMAIL
     else:
         await update.message.reply_text(
-            "enter proper phone number"
+           "please enter proper phone number 🙂"
         )
         return CONTACT
 
@@ -262,16 +224,16 @@ async def email (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         ))
         conn.commit()
         await update.message.reply_text(
-        "cool , now lets enter your skills , so thay club can find you easily  , currently the clubs which are available are" 
-        "music , tech , acting , dance"
-        "please enter your skills seperated by commas"
-        "example : art,tech,music,dance"
+        "well done\nnow enter your SKILLS to register,so to get into the perfect CLUB of your skill! \nCurrently SIT has the following clubs which are ⇩\n" 
+        "DMC\nVULCANS\nAURORA\nDECODERS\n"
+        "please enter your skills seperated by space"
+        "example : MUSIC DANCE ACTING TECH"
         )
         return SKILLENTER
     else:
         # print(f"{email} is not a valid email address")
         await update.message.reply_text(
-        "ENTER PROPER EMAIL"
+         "PROPER EMAIL please 👀"
         )
         return EMAIL
 
@@ -305,7 +267,7 @@ async def skillenter (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         conn.commit()
         reply_keyboard = [["UPDATE ", "LOGOUT"]]
         await update.message.reply_text(
-            " data is stored , what to do next\n\n"
+        "congratulations 🎉🎉🥳 your skills is registered now!\nWe will let you know if someone messages you!\nwhat to do next 🙃\n\n"
              ,  reply_markup=ReplyKeyboardMarkup(
         reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
         ),
@@ -313,10 +275,10 @@ async def skillenter (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         return STUDENTEND
     else: 
         await update.message.reply_text(
-        "ENTER PROPER SKILLS" 
-        "music , tech , acting , dance"
-        "please enter your skills seperated by space"
-        "example : art tech music dance"
+        "ENTER PROPER SKILLS\n" 
+        # "music  tech  acting  dance"
+        "please enter your skills seperated by space\n"
+        "example : art tech "
         )
         return SKILLENTER
 
@@ -333,7 +295,7 @@ async def studentend (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             return  OPTION
     elif(option=="UPDATE"):
         await update.message.reply_text(
-            "let us update your skills"
+            "PLEASE ENTER YOUR UPDATED SKILLS"
         )
         return SKILLUPDATE
 
@@ -347,7 +309,7 @@ async def skillupdate (update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         return [row[0] for row in c.fetchall()]
 
     valid_words = get_valid_words()
-    print("Reach here")
+    # print("Reach here")
 
     def is_valid_string(s):
         words = s.split()
@@ -359,7 +321,7 @@ async def skillupdate (update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         conn.commit()
         reply_keyboard = [["UPDATE ", "LOGOUT"]]
         await update.message.reply_text(
-            " data is stored , what to do next\n\n"
+        "congratulations 🎉🎉🥳 your skills are updated now!\nWe will let you know if someone messages you!\nwhat to do next 🙃\n\n"
              ,  reply_markup=ReplyKeyboardMarkup(
         reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
         ),
@@ -399,7 +361,7 @@ async def clubin (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return CLUBENTER
     elif(option=="NEW CLUB"):
         await update.message.reply_text(
-        "PLEASE CONTACT ADMIN TO ADD YOU CLUB!"
+        "PLEASE CONTACT ADMIN TO ADD YOU CLUB! 📞--> 9741906435"
         )
 
 
@@ -421,7 +383,7 @@ async def clubpw (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if(correct_password and correct_password[0] != option):
         reply_keyboard = [["STUDENT", "CLUB ADMIN" , "ADMIN"]]
         await update.message.reply_text(
-            "incorrect \n\n"
+            "incorrect PASSWORD \n"
             "if forgetton password , please contact admin" 
              ,  reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
@@ -429,10 +391,10 @@ async def clubpw (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )   
         return  OPTION
     else : 
-        reply_keyboard = [["UPDATE PASSWORD", "SEARCH USERS" , "SHOW ALL USERS" , "LOGOUT"]]
+        reply_keyboard = [["UPDATE PASSWORD", "SEND MESSAGE" , "SHOW ALL USERS" , "LOGOUT"]]
         await update.message.reply_text(
-            "WELCOME CLUB" + temp[str(update.effective_user.id)]["club"] + 
-            " what can we do you for today!?"
+            "WELCOME CLUB " + temp[str(update.effective_user.id)]["club"] +" !\n" 
+            "what can we do you for today!?"
 
              ,  reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
@@ -447,41 +409,19 @@ async def clubopt (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         "ENTER NEW PASSWORD"
         )   
         return CLUBNEWPW
-    elif(option=="SEARCH USERS"):
-        cursor = conn.cursor()
-        cursor.execute("SELECT usn,name FROM studentss WHERE")
-        studentlist= cursor.fetchall()
-        message = "List of students: \n"
-        for i in studentlist:
-             message += "{}  \n".format(i)
-             message += "\n"
-        # update.message.reply_text(message)
-        if(len(message)<20): message+="NO USERS FOUND \n"
-        else : message+="HERE ARE A LIST OF STUDENT \n"
-        message+="what to do next?"
-        reply_keyboard = [["UPDATE PASSWORD", "SEARCH USERS" , "SHOW ALL USERS" , "LOGOUT"]]
+    elif(option=="SEND MESSAGE"):
         await update.message.reply_text(
-        message
-         ,  reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
-            ),
-        )
-    elif(option=="LOGOUT"):
-            reply_keyboard = [["STUDENT", "CLUB ADMIN" , "ADMIN"]]
-            await update.message.reply_text(
-            "LOGGING OUT! \n\n"
-             ,  reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
-            ),
-            )   
-            return  OPTION
+        "PLEASE ENTER THE USN TO WHOM YOU WANNA SEND MESSAGE"
+        )   
+        return SEARCHUSNCLUB
+        
     elif(option=="SHOW ALL USERS"):
         clubname=temp[str(update.effective_user.id)]["club"]
         x={}
         x["DMC"]="MUSIC"
         x["VULCANS"]="DANCE"
         x["AURORA"]="ACTING"
-        x["DECODES"]="TECH"
+        x["DECODERS"]="TECH"
         currintrest=x[clubname]
         def search_students_with_skill(currintrest):
             conn = sqlite3.connect("skills.db")
@@ -492,14 +432,26 @@ async def clubopt (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         def get_student_names_by_usn(usn_list):
             conn = sqlite3.connect("students.db")
             c = conn.cursor()
-            query = "SELECT name FROM students WHERE usn IN ({})".format(','.join(['?']*len(usn_list)))
+            query = "SELECT name FROM studentss WHERE usn IN ({})".format(','.join(['?']*len(usn_list)))
             c.execute(query, usn_list)
             return [row[0] for row in c.fetchall()]
         student_names = get_student_names_by_usn(studentsusn)
-        print(student_names)
-       
+        usn_to_name = {}
+        for name in student_names:
+            conn = sqlite3.connect("students.db")
+            c= conn.cursor()
+            c.execute("SELECT usn FROM studentss WHERE name = ?", (name,))
+            result = c.fetchone()
+            if result:
+                usn = result[0]
+                usn_to_name[usn] = name
+        print(usn_to_name)
+        message="Here is the list of all users \n"
+        for usn, name in usn_to_name.items():
+            message += "USN: {} - > Name: {} \n".format(usn, name)
+
         if(len(student_names)==0):
-                    reply_keyboard = [["UPDATE PASSWORD", "SEARCH USERS" , "SHOW ALL USERS" , "LOGOUT"]]
+                    reply_keyboard = [["UPDATE PASSWORD", "SEND MESSAGE" , "SHOW ALL USERS" , "LOGOUT"]]
                     await update.message.reply_text(
                     "NO USER FOUND , what to do next??"
                     ,  reply_markup=ReplyKeyboardMarkup(
@@ -507,14 +459,99 @@ async def clubopt (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 ),
                 )
         else : 
-                reply_keyboard = [["UPDATE PASSWORD", "SEARCH USERS" , "SHOW ALL USERS" , "LOGOUT"]]
+                reply_keyboard = [["UPDATE PASSWORD", "SEND MESSAGE" , "SHOW ALL USERS" , "LOGOUT"]]
                 await update.message.reply_text(
-                    student_names 
+                    message
                     ,  reply_markup=ReplyKeyboardMarkup(
                     reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
                 ),
                 )
-            
+                return CLUBOPT
+    elif(option=="LOGOUT"):
+            reply_keyboard = [["STUDENT", "CLUB ADMIN" , "ADMIN" ]]
+            await update.message.reply_text(
+            "LOGGING OUT! \n\n"
+             ,  reply_markup=ReplyKeyboardMarkup(
+            reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
+            ),
+            )   
+            return  OPTION
+
+imp=""          
+async def searchusnclub (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    currusn=update.message.text
+    global imp
+    imp=currusn
+    clubname=temp[str(update.effective_user.id)]["club"]
+    x={}
+    x["DMC"]="MUSIC"
+    x["VULCANS"]="DANCE"
+    x["AURORA"]="ACTING"
+    x["DECODERS"]="TECH"
+    currintrest=x[clubname]
+    def search_students_with_skill(currintrest):
+            conn = sqlite3.connect("skills.db")
+            c = conn.cursor()
+            c.execute("SELECT usn FROM skills WHERE skills LIKE ?", ('%' + currintrest + '%',))
+            return [row[0] for row in c.fetchall()]
+    studentsusn = search_students_with_skill(currintrest)
+    if currusn in studentsusn : 
+        await update.message.reply_text(
+                    "PLEASE TYPE THE RECRUITMENTS DETAILS BELOW WHICH WILL BE SENT TO THE USER"
+        )
+        return SENDMSG
+
+    else: 
+        reply_keyboard = [["UPDATE PASSWORD", "SEND MESSAGE" , "SHOW ALL USERS" , "LOGOUT"]]
+        await update.message.reply_text(
+                    "NO USER FOUND , what to do next??"
+                    ,  reply_markup=ReplyKeyboardMarkup(
+                    reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
+        ),
+        )
+        return CLUBOPT
+
+async def sendmsg (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    option=update.message.text
+    global imp
+    message= "this is an message from club " + temp[str(update.effective_user.id)]["club"] + "\n"
+    message+=option
+    message+="\n"
+    message+="\n\nTHIS IS AN AUTOMATED MESSAGE , PLEASE DO NOT REPLY"
+    def send_message(chat_id, text):
+        bot_token = '5889738520:AAGYoXEZ5xzHIbn-At_U0k9yl5NmHkdEy7c'
+        send_message_url = 'https://api.telegram.org/bot' + bot_token + '/sendMessage'
+        response = requests.post(send_message_url, json={'chat_id': chat_id, 'text': text})
+        if response.status_code != 200:
+            raise ValueError('Failed to send message: {}'.format(response.content))
+
+
+
+    conn = sqlite3.connect("students.db")
+    cursor = conn.cursor()
+    usn = imp
+    cursor.execute("SELECT teleid FROM studentss WHERE usn = ?", (usn,))   
+    result = cursor.fetchone()
+    if result:
+        chatids = result[0]
+    else:
+        chatids= None
+    conn.commit()
+    conn.close()
+    send_message(chat_id=chatids, text=message)
+    reply_keyboard = [["UPDATE PASSWORD", "SEND MESSAGE" , "SHOW ALL USERS" , "LOGOUT"]]
+    await update.message.reply_text(
+                    "message sent"
+                    ,  reply_markup=ReplyKeyboardMarkup(
+                    reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
+        ),
+    )
+    return CLUBOPT
+
+
+
+
+
 
 
 
@@ -525,7 +562,7 @@ async def clubnewpw (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     cursor = conn.cursor()
     cursor.execute("UPDATE clubs SET password=? WHERE club_name=?", (option, temp[str(update.effective_user.id)]["club"]))
     conn.commit()
-    reply_keyboard = [["UPDATE PASSWORD", "SEARCH USERS" , "SHOW ALL USERS" , "LOGOUT"]]
+    reply_keyboard = [["UPDATE PASSWORD", "SEND MESSAGE" , "SHOW ALL USERS" , "LOGOUT"]]
     await update.message.reply_text(
            "NEW PASSWORD SET"
              ,  reply_markup=ReplyKeyboardMarkup(
@@ -556,7 +593,7 @@ async def adminname (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     else : 
         reply_keyboard = [["STUDENT", "CLUB ADMIN" , "ADMIN"]]
         await update.message.reply_text(
-            "incorrect \n\n"
+            "incorrect \n"
             "taking you back page" 
              ,  reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
@@ -570,7 +607,7 @@ async def adminpw (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if(option=="password12345"):
         reply_keyboard = [["SHOW USER" , "DELETE BY USN" , "SEARCH USER" , "LOGOUT"]]
         await update.message.reply_text(
-            "correct \n\n"
+            "Welcome Admin! \n"
             "WHAT TO DO ?" 
              ,  reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
@@ -603,7 +640,7 @@ async def adminin (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         if(len(message)<20): message+="NO USERS FOUND \n"
         else : message+="HERE ARE A LIST OF STUDENT \n"
         message+="what to do next?"
-        reply_keyboard = [["SHOW USER" , "DELETE BY USN" , "SEARCH USER"]]
+        reply_keyboard = [["SHOW USER" , "DELETE BY USN" , "SEARCH USER" ,"LOGOUT"]]
         await update.message.reply_text(
         message
          ,  reply_markup=ReplyKeyboardMarkup(
@@ -668,7 +705,7 @@ async def searchusn (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     c=conn.cursor()
     c.execute("SELECT usn FROM studentss WHERE usn=?", (usn,))
     if c.fetchone() is None:
-        reply_keyboard = [["SHOW USER" , "DELETE BY USN" , "SEARCH USER"]]
+        reply_keyboard = [["SHOW USER" , "DELETE BY USN" , "SEARCH USER" , "LOGOUT"]]
         # reply_keyboard = [["STUDENT", "CLUB ADMIN" , "ADMIN"]]
         await update.message.reply_text(
                     "usn does ot exist "
@@ -680,20 +717,33 @@ async def searchusn (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return ADMININ
     else:
         usn=update.message.text
-        print("printing usn : ")
-        print(usn)
+        # print("printing usn : ")
+        # print(usn)
         c = conn.cursor()
         c.execute("SELECT * FROM studentss WHERE usn=?", (usn,))
         studentlist= c.fetchall()
         print(studentlist)
-        message = "students info: \n"
+        # message = "students info: \n"
+        var=tuple()
         for i in studentlist:
-             message += "{}  \n".format(i)
-             message += "\n"
+             var=i
+            #  message += "{}  \n".format(i)
+            #  message += "\n"
         # update.message.reply_text(message)
+        message=""
         message+="\n"
         message+="what to do next?"
-        reply_keyboard = [["SHOW USER" , "DELETE BY USN" , "SEARCH USER"]]
+        message = "students info : \n"
+        message +="USN : " + str(var[0])
+        message +="\nNAME : " +str(var[1])
+        message +="\nYEAR : " +str(var[2])
+        message +="\nBRANCH : " +str(var[4])
+        message +="\nPHONE NUMBER : " +str(var[5])
+        message +="\nEMAIL : " +str(var[6])
+        message+="\nWHAT TO DO NEXT?"
+
+
+        reply_keyboard = [["SHOW USER" , "DELETE BY USN" , "SEARCH USER" , "LOGOUT"]]
         await update.message.reply_text(
         message
                    ,  reply_markup=ReplyKeyboardMarkup(
@@ -715,168 +765,6 @@ async def searchusn (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 
-
-
-async def desc (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global users
-    users[str(update.effective_user.id)]["bio"]=update.message.text
-    if(len(users[str(update.effective_user.id)]["bio"])<10):
-        await update.message.reply_text(
-            "That's to less , tell me more about yourself so I get to know you better!")
-        return DESC
-    elif(len(users[str(update.effective_user.id)]["bio"])>100):
-        await update.message.reply_text(
-            "WOAH ! THATS TOO MUCH , HOW ABOUT MAKING IT LESS TO 100 CHARS!?")
-        return DESC
-    else :
-        await update.message.reply_text(
-        "Good to know about you!\n" 
-        "Now ! Enter your linkedin url so that people can connect with you through it!"
-         )
-        return LINKEDIN
-
-async def linkedin (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global users
-    users[str(update.effective_user.id)]["linkedin"]=update.message.text
-    if(users[str(update.effective_user.id)]["linkedin"].startswith("https://www.linkedin.com/")):
-        await update.message.reply_text(
-        "Great!\n"
-        "Let me help you find people of similar intrest ! \n"
-        "Share your three intrest areas sererated by commas \n\n\n" 
-        "eg: crypto , tech  , web3\n"
-        "you can change these interests later on😄"
-        )
-        return INTREST
-
-    await update.message.reply_text(
-            "THAT DOSENT SEEM LIKE A VALID LINKEDIN URL , MAYBE TRY ENTERING YOUR LINKEDIN URL AGAIN!?"
-    )
-    return LINKEDIN
-
-async def intrest (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global users
-    reply_keyboard = [["UPDATE CURRENT INTRESTS!", "FIND CONNECTIONS!", "SEE REQUESTS"]]
-    if(len(users[str(update.effective_user.id)]["intrest_list"])==0):
-        message=update.message.text
-        message = message.replace(' ', '')
-        users[str(update.effective_user.id)]["intrest_list"]=message
-        cursor.execute("INSERT INTO users2 (id, name, bio , linkedin , intrest ) VALUES (?, ?, ?, ? , ?)", 
-        (
-        str(update.effective_user.id) , 
-        users[str(update.effective_user.id)]["name"]  , 
-        users[str(update.effective_user.id)]["bio"] , 
-        users[str(update.effective_user.id)]["linkedin"] , 
-        users[str(update.effective_user.id)]["intrest_list"] 
-        
-        ))
-        conn.commit()
-        updatedtext = json.dumps(message.split())
-        await update.message.reply_text(
-            "GOT TO KNOW YOUR INTREST  🚀\n"
-            "LETS GET YOU STARTED 🚀 🚀" , 
-            reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
-            ),
-        )
-        return HELPER
-    else:
-        message=update.message.text
-        message = message.replace(' ', '')
-        users[str(update.effective_user.id)]["intrest_list"]=message
-        x=str(update.effective_user.id)
-        cursor.execute("UPDATE users2 SET intrest = ? WHERE id = ?" ,( message , str(update.effective_user.id)))
-        conn.commit()
-        await update.message.reply_text(
-            "UPDATED YOUR INTREST , LESSGOO 🚀 \n"
-            "LETS GET BACK WHERE YOU LEFT OFF\n" , 
-            reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard, one_time_keyboard=True , input_field_placeholder="CHOOSE FROM THE BUTTONS BELOW 👇"
-            ),
-        )
-        return HELPER
-
-#HELPER FUNCITON IS USED TO SHOW LIKE UK , WHERE TO GO AFTER SELECTING SOMETHING FROM THE INLINE KEYBOAD
-async def helper (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    global users
-    option=update.message.text
-    if(option=="UPDATE CURRENT INTRESTS!"):
-        await update.message.reply_text(
-       "lets updates your intrests\n\n PLEASE ENTER YOUR NEW INTRESTS BELOW"  ,  reply_markup=ReplyKeyboardRemove(),
-        )
-        return  INTREST
-    elif(option=="FIND CONNECTIONS!"):
-        await update.message.reply_text("FINDING USERS FOR YOU")
-        x=str(update.effective_user.id)
-        cursor.execute("SELECT intrest FROM users2 WHERE  id=?" , (x , ))
-        rows = cursor.fetchone()
-        message=rows[0]
-        intrest_list=message.split(',')
-        users[str(update.effective_user.id)]["user"]={}
-        users[str(update.effective_user.id)]["x"]=0
-        for i in intrest_list : 
-            query = "SELECT * FROM users2 WHERE intrest LIKE '%{}%'".format(i)
-            cursor.execute(query)
-            rows = cursor.fetchall()
-            for row in rows:
-                id = row[0]
-                name = row[1]
-                bio = row[2]
-                linkedin = row[3]
-                intrest= row[4]
-                users[str(update.effective_user.id)]["user"][users[str(update.effective_user.id)]["x"]]= {
-                    "id" : id , 
-                    "name": name,
-                    "bio": bio,
-                    "linkedin": linkedin,
-                    "intrest": intrest
-                }
-                users[str(update.effective_user.id)]["x"]+=1
-        if(len(users)==0):
-            await update.message.reply_text("NO USERS FOUND , MAYBE TRY AGAIN LATER ?")
-            return HELPER
-        else : 
-            # print("there are the potential user \n")
-            # print(users[str(update.effective_user.id)]["user"])
-            users[str(update.effective_user.id)]["keys"]=list( users[str(update.effective_user.id)]["user"].keys())
-            random.shuffle(users[str(update.effective_user.id)]["keys"])
-            users[str(update.effective_user.id)]["size"]=0
-            return DISPLAYUSER
-
-async def displayuser (update: Update, context: ContextTypes.DEFAULT_TYPE) :
-    global users
-    if(users[str(update.effective_user.id)]["size"]==len(users[str(update.effective_user.id)]["keys"])-1):
-        reply_keyboard = [["UPDATE CURRENT INTRESTS!", "FIND CONNECTIONS!", "SEE REQUESTS"]]
-        await update.message.reply_text("THATS ALL THE USERS WE FOUND , LETS GET BACK SHALL WE?" , 
-           reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard, one_time_keyboard=True , input_field_placeholder=""
-            ),)
-        return HELPER
-    else :
-        print(users[str(update.effective_user.id)]["user"][users[str(update.effective_user.id)]["keys"][users[str(update.effective_user.id)]["size"]]]["name"])
-        users[str(update.effective_user.id)]["size"]+=1
-        reply_keyboard = [["CONNECT" , "FIND MORE"]]
-        await update.message.reply_text( "THINK I'VE FOUND A POTENTIAL USER FOR YOU"
-            "FOUND A USER " + "\nNAME: " + users[str(update.effective_user.id)]["user"][users[str(update.effective_user.id)]["keys"][users[str(update.effective_user.id)]["size"]]]["name"]  +
-        "\nBIO : " + users[str(update.effective_user.id)]["user"][users[str(update.effective_user.id)]["keys"][users[str(update.effective_user.id)]["size"]]]["bio"] + 
-        "\nINTREST :" + users[str(update.effective_user.id)]["user"][users[str(update.effective_user.id)]["keys"][users[str(update.effective_user.id)]["size"]]]["intrest"] , 
-                reply_markup=ReplyKeyboardMarkup(
-                        reply_keyboard, one_time_keyboard=True , input_field_placeholder=""
-        ) , )
-        return DISPLAYOPTION
-
-
-async def displayoption (update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    option=update.message.text
-    global users
-    if(option=="FIND MORE") : 
-        return DISPLAYUSER
-    elif(option=="CONNECT"):
-        reply_keyboard = [["UPDATE CURRENT INTRESTS!", "FIND CONNECTIONS!", "SEE REQUESTS"]]
-        await update.message.reply_text("HERE IS THEIR LINKEDIN ID " + users[str(update.effective_user.id)]["user"][users[str(update.effective_user.id)]["keys"][users[str(update.effective_user.id)]["size"]]]["linkedin"],  
-        reply_markup=ReplyKeyboardMarkup(
-                        reply_keyboard, one_time_keyboard=True , input_field_placeholder=""
-        ) , )
-        return HELPER
 
 def main() -> None:
     """Run the bot."""
@@ -905,6 +793,10 @@ def main() -> None:
             CLUBNEWPW : [MessageHandler(filters.TEXT & ~filters.COMMAND, clubnewpw)],
             STUDENTEND : [MessageHandler(filters.TEXT & ~filters.COMMAND, studentend)],
             SKILLUPDATE : [MessageHandler(filters.TEXT & ~filters.COMMAND, skillupdate)],
+            SEARCHUSNCLUB : [MessageHandler(filters.TEXT & ~filters.COMMAND, searchusnclub)],
+            SENDMSG : [MessageHandler(filters.TEXT & ~filters.COMMAND, sendmsg)],
+
+
 
 
 
@@ -929,13 +821,6 @@ def main() -> None:
 
             OPTION : [MessageHandler(filters.TEXT & ~filters.COMMAND, option)],
             OPTION : [MessageHandler(filters.TEXT & ~filters.COMMAND, option)],
-            DESC : [MessageHandler(filters.TEXT & ~filters.COMMAND, desc)],
-            LINKEDIN : [MessageHandler(filters.TEXT & ~filters.COMMAND, linkedin)],
-            INTREST : [MessageHandler(filters.TEXT & ~filters.COMMAND, intrest)],
-            HELPER : [MessageHandler(filters.Regex("^(UPDATE CURRENT INTRESTS!|FIND CONNECTIONS!|SEE REQUESTS)$"), helper)] , 
-            DISPLAYUSER : [MessageHandler(filters.TEXT & ~filters.COMMAND, displayuser )] , 
-            DISPLAYOPTION : [MessageHandler(filters.TEXT & ~filters.COMMAND, displayoption )] ,
-            # INTREST2 : [MessageHandler(filters.TEXT & ~filters.COMMAND, intrest2)],
         },
         fallbacks=[],
     )
