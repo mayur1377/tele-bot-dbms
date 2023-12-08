@@ -1,0 +1,492 @@
+import logging
+import os
+import re, random
+import shutil
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, ConversationHandler, CallbackQueryHandler, MessageHandler, Filters
+
+# Enable loggingṇ
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                     level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
+# Define the states for the conversation
+NAME, USN, SEMESTER, SUBJECT, UNIT , UPLOADFILE,  REPLACEFILE  , CHECK = range(8)
+
+# Define the subjects for each branch and semester
+subjects = {
+    'CS': {
+        '1': ['Subject 1', 'Subject 2'],
+        '2': ['Subject 3', 'Subject 4'],
+        # Add subjects for other semesters
+    },
+    'IS': {
+        '1': ['Subject 5', 'Subject 6'],
+        '2': ['Subject 7', 'Subject 8'],
+        '3': ['ADC', 'CO' , 'CIPE' , 'DS'],
+        '4': ['DAA', 'OS' , 'ARM' , 'BIOE'],
+        '5': ['DBMS', 'SE&T' , 'SIOT' , 'DC' , 'JAVA'],
+        '6': ['ADSA' , 'SPM' , 'CN' , 'AIML' , 'WT'],
+        '7': ['CBT', 'CCDF' ],
+        '8': ['Subject 7', 'Subject 8']
+        # Add subjects for other semesters
+    }
+}
+
+# Handler for the /start command
+# Handler for the /start command
+def start(update, context):
+    user_id = str(update.effective_user.id)
+    context.user_data[user_id] = {}
+    # ask the user if they are teacher or student in inline keyboard
+    keyboard = [
+        [InlineKeyboardButton("Teacher 👩‍🏫", callback_data='teacher'),
+         InlineKeyboardButton("Student 👨‍🎓", callback_data='student')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Hey there! Lemme know if you are a student or a teacher!', reply_markup=reply_markup)
+    return CHECK
+
+def check(update, context):
+    query = update.callback_query
+    if query.data == 'teacher':
+        random_messages = [
+        "👩‍🏫 Welcome to teacher mode! Upload your notes here! 📚✏️ format : subject_short_form_unit_number , ie : ADSA_4",
+        "📝 Teacher mode activated! Share your notes by uploading them here! 📎📖 format : subject_short_form_unit_number , ie : ADSA_4",
+        "📚🎓 Welcome, teacher! This is the place to upload your notes and share knowledge! 📝📚 format : subject_short_form_unit_number , ie : ADSA_4",
+        "📖 Get ready to share your wisdom, teacher! Upload your notes here! 🖊️📋 format : subject_short_form_unit_number , ie : ADSA_4 ",
+        "🎉 Teacher mode activated! Start uploading your notes to enrich your students' learning experience! 📚📖 format : subject_short_form_unit_number , ie : ADSA_4"
+        ]
+        query.message.reply_text(random.choice(random_messages))
+        return UPLOADFILE
+    else:
+        welcome_messages = [
+        "🌟 Welcome! I'm here to assist you. What's your name? 🤗",
+        "👋 Hello there! Please tell me your name so I can assist you. 😊",
+        "🎉 Welcome aboard! Let's get started. What's your name? 🌟",
+        "🌈 Hi! I'm here to help. Please enter your name so we can begin. 🌻",
+        "✨ Hello! I'm ready to assist you. What's your name? 🌼"
+        ]
+        query.message.reply_text(random.choice(welcome_messages))
+        return NAME
+
+
+def collect_name(update, context):
+    user_id = str(update.effective_user.id)
+    name = update.message.text.strip()  # Remove leading/trailing whitespace
+    print(name)
+    # if name.lower() == 'mayur':
+    #         update.message.reply_text('welcome to teacher mode , upload a pdf')
+    #         return UPLOADFILE
+    context.user_data[user_id]['name'] = name
+    
+    # Define the regular expression pattern for the name format
+    pattern = r'^[a-zA-Z]{4,}$'
+    if re.match(pattern, name):
+        if name.lower() == 'mayur':
+            update.message.reply_text('welcome to teacher mode , upload a pdf with the format "subjectname_unitnumber.pdf"')
+            return UPLOADFILE
+        else:
+            random_message = random.choice([
+            f"🌟 Nice to meet you, {context.user_data[user_id]['name']}! 🤗\n\nNow, please enter your USN (University Seat Number):",
+            f"👋 Welcome, {context.user_data[user_id]['name']}! 🤩\n\nPlease provide your USN (University Seat Number):",
+            f"🎉 It's a pleasure to meet you, {context.user_data[user_id]['name']}! 🥳\n\nPlease enter your USN (University Seat Number):",
+            f"🌼 Hello, {context.user_data[user_id]['name']}! 😊\n\nNow, let's continue by entering your USN (University Seat Number):",
+            f"✨ Great to have you here, {context.user_data[user_id]['name']}! 🌟\n\nPlease provide your USN (University Seat Number):"
+            ])
+            update.message.reply_text(random_message)
+            return USN
+    else:
+        error_messages = [
+            "⚠️ Oops! It doesn't seem like a valid name. Please try again. 📛",
+            "❌ Error! The name you entered is not valid. Please provide a valid name. 🚫",
+            "⚙️ Sorry, the name format is invalid. Please enter a valid name. 🔢",
+            "🚫 Uh-oh! The name you entered does not meet the required format. Please provide a valid name. ⌨️",
+            "❗️ Invalid name! Please ensure you enter a valid name. 📋"
+        ]
+        update.message.reply_text(random.choice(error_messages))
+        return NAME
+
+
+def upload_file(update, context):
+    document = update.message.document
+    user_id = str(update.effective_user.id)
+    photo = update.message.photo
+    print(photo)
+    error_messages = [
+            "⚠️ Oops! I can only process files, not messages. Please upload a PDF file. 📎",
+            "❌ Error! Only notes are allowed. Please upload a PDF file. 📚",
+            "⚙️ Sorry, I can't handle messages. Please upload a PDF file. 📄",
+            "🚫 It seems like you sent a message instead of a file. Please upload a PDF file. 📥",
+            "❗️ Uh-oh! Messages are not supported. Please upload a PDF file. 📋"
+    ]
+    if photo:
+        error_messages = [
+            "⚠️ Sorry, only PDF, DOC, DOCX, and PPTX files are allowed. Please upload a valid file. 📎",
+            "❌ Error! Only PDF, DOC, DOCX, and PPTX files are accepted. Please upload a file with a valid extension. 📚",
+            "⚙️ Invalid file format! Please upload a PDF, DOC, DOCX, or PPTX file. 📄",
+            "🚫 Oops! Only files in PDF, DOC, DOCX, or PPTX format are supported. Please upload a valid file. 📥",
+            "❗️ Invalid file! Please ensure you upload a file in PDF, DOC, DOCX, or PPTX format. 📋"
+        ]
+        update.message.reply_text(random.choice(error_messages))
+        return UPLOADFILE
+
+    message_text = update.message.text
+    if message_text and message_text.lower() == "logout":
+        keyboard = [
+        [InlineKeyboardButton("Teacher 👩‍🏫", callback_data='teacher'),
+         InlineKeyboardButton("Student 👨‍🎓", callback_data='student')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text('Hey there! Lemme know if you are a student or a teacher!', reply_markup=reply_markup)
+        return CHECK
+    
+    if not document:
+        update.message.reply_text(random.choice(error_messages))
+        return UPLOADFILE
+
+    message_text = update.message.text
+    if message_text and message_text.lower() == "logout":
+        return NAME
+
+    file_name = document.file_name
+    if not file_name:
+        update.message.reply_text(random.choice(error_messages))
+        return UPLOADFILE
+    file_extension = os.path.splitext(file_name)[1]  # Extract the file extension
+    file_id = update.message.document.file_id
+    file_path = os.path.join(os.getcwd(), file_name)
+    print("FILE EXTENSION IS ")
+    print(file_extension)
+    allowed_extensions = ['.pdf', '.doc', '.docx', '.pptx']
+    if file_extension not in allowed_extensions:
+        error_messages = [
+            "⚠️ Sorry, only PDF, DOC, DOCX, and PPTX files are allowed. Please upload a valid file. 📎",
+            "❌ Error! Only PDF, DOC, DOCX, and PPTX files are accepted. Please upload a file with a valid extension. 📚",
+            "⚙️ Invalid file format! Please upload a PDF, DOC, DOCX, or PPTX file. 📄",
+            "🚫 Oops! Only files in PDF, DOC, DOCX, or PPTX format are supported. Please upload a valid file. 📥",
+            "❗️ Invalid file! Please ensure you upload a file in PDF, DOC, DOCX, or PPTX format. 📋"
+        ]
+        update.message.reply_text(random.choice(error_messages))
+        return UPLOADFILE
+    else:
+        # print(file_path)
+        if os.path.exists(file_path):
+            keyboard = [
+                [InlineKeyboardButton("Yes", callback_data="replace_file"),
+                 InlineKeyboardButton("No", callback_data="cancel_replace")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            update.effective_message.reply_document(document=open(file_path, 'rb'))
+            print(file_path)
+            context.user_data[user_id]['duplicates'] =[]
+            file_path_temp = file_path[:-4]
+            file_path_temp = file_path_temp + "+duplicate_file" + file_extension
+            context.user_data[user_id]['duplicates'].append([file_path, file_path_temp])
+            # print last appended element in duplicates
+            print(context.user_data[user_id]['duplicates'][-1])
+            context.bot.get_file(file_id).download(file_path_temp)
+            update.message.reply_text('The file already exists. Do you want to replace it?', reply_markup=reply_markup)
+            return REPLACEFILE
+
+        # Continue with file upload if the file doesn't exist
+        context.bot.get_file(file_id).download(file_path)
+        success_messages = [
+        "🎉 File uploaded successfully! I'm ready to take more files! 📥",
+        "✅ File uploaded successfully! You can upload another file if you need to. 📂",
+        "📥 File uploaded successfully! Feel free to upload more files. 📄",
+        "👍 Great! Your file was uploaded successfully. You can continue uploading more files. 📑",
+        "✨ File uploaded successfully! Let me know if you have more files to upload. 📩"
+        ]
+        update.message.reply_text(random.choice(success_messages))
+        return UPLOADFILE
+
+
+def replace_file(update, context):
+    query = update.callback_query
+    user_choice = query.data
+    user_id = str(update.effective_user.id)
+    if user_choice == "replace_file":
+        # make file path as the first pair of last appended duplicates
+        file_path = context.user_data[user_id]['duplicates'][-1][0]
+        os.remove(file_path)
+        os.rename(context.user_data[user_id]['duplicates'][-1][1], context.user_data[user_id]['duplicates'][-1][0])
+        random_messages = [
+        "✅ Files replaced successfully! You can now add new files.",
+        "🔄 Files have been replaced. Feel free to upload new files.",
+        "🔄 Files have been updated. You can proceed with adding new files.",
+        "🔄 Files have been replaced successfully. You have the option to upload more files.",
+        "✅ Files have been replaced. Keep adding new files to your collection."
+        ]
+    
+        query.edit_message_text(random.choice(random_messages))
+        return UPLOADFILE
+
+    elif user_choice == "cancel_replace":
+        file_path = context.user_data[user_id]['duplicates'][-1][1]
+        os.remove(file_path)
+        random_messages = [
+        "❌ File replacement canceled. Feel free to continue adding new files.",
+        "⛔️ File replacement canceled. You can proceed with uploading new files.",
+        "🚫 File replacement canceled. You have the option to add additional files.",
+        "🔄 File replacement operation aborted. You can continue uploading new files.",
+        "🔁 File replacement canceled. Don't hesitate to upload more files."
+        ]
+        query.edit_message_text(random.choice(random_messages))
+        return UPLOADFILE
+
+        
+
+
+# Handler for validating the USN format
+# Handler for validating the USN format
+def validate_usn(update, context):
+    user_id = str(update.effective_user.id)
+    usn = update.message.text.upper()  # Convert to uppercase for case insensitivity
+    query = update.callback_query
+    pattern = r'^\dSI\d{2}(CS|IS)\d{3}$'
+
+    if re.match(pattern, usn):
+        # Check if USN already exists in user data
+        for user_data in context.user_data.values():
+            if 'usn' in user_data and user_data['usn'] == usn:
+                update.message.reply_text('USN already exists. Please enter your usn.')
+                return USN
+        # write down the name , telegram id and usn in a file
+        file = open("user_data.txt", "a")
+        file.write(context.user_data[user_id]['name'] + " " + str(update.effective_user.id) + " " + usn + "\n")
+
+        # USN is valid and not a duplicate
+        context.user_data[user_id]['usn'] = usn
+        branch_from_usn = usn[5:7]
+        context.user_data[user_id]['branch'] = branch_from_usn
+        semester_buttons = [
+        [InlineKeyboardButton("SEM I", callback_data="1")],
+        [InlineKeyboardButton("SEM II", callback_data="2")],
+        [InlineKeyboardButton("SEM III", callback_data="3")] , 
+        [InlineKeyboardButton("SEM IV", callback_data="4")] , 
+        [InlineKeyboardButton("SEM V", callback_data="5")] , 
+        [InlineKeyboardButton("SEM VI", callback_data="6")] , 
+        [InlineKeyboardButton("SEM VII", callback_data="7")],
+        [InlineKeyboardButton("SEM VIII", callback_data="8")]]
+        # Add more semesters if needed
+        reply_markup = InlineKeyboardMarkup(semester_buttons)
+        random_message = random.choice([
+        "📚 USN validated. Please select your semester:",
+        "🎓 USN validated. Choose your semester from the list below:",
+        "⏳ USN validated. Let's find notes for your specific semester. Please select it:",
+        "📖 USN validated. Select your semester to access the corresponding notes:",
+        "🎯 USN validated. Pick your semester from the choices below to continue:"
+        ])
+        update.effective_message.reply_text(text=random_message, reply_markup=reply_markup)
+        return SEMESTER
+    else:
+        error_messages = [
+            "⚠️ Invalid USN format! Please make sure to enter a valid USN. 🆔",
+            "❌ Oops! The USN format you entered is invalid. Please try again. 🔄",
+            "⚙️ Invalid USN! Please double-check your entry and re-enter your USN. 🔢",
+            "🚫 Uh-oh! The USN you entered does not match the required format. Please provide a valid USN. ⌨️",
+            "❗️ Invalid USN! Please enter a valid USN in the correct format. 💻"
+        ]
+        update.message.reply_text(random.choice(error_messages))
+        return USN
+
+
+def select_semester(update, context):
+    query = update.callback_query
+    user_id = str(query.from_user.id)
+    context.user_data[user_id]['semester'] = query.data
+
+    subject_buttons = []
+    branch = context.user_data[user_id]['branch']
+    semester = context.user_data[user_id]['semester']
+    if branch in subjects and semester in subjects[branch]:
+        semester_subjects = subjects[branch][semester]
+        for subject in semester_subjects:
+            subject_buttons.append([InlineKeyboardButton(subject, callback_data=subject)])
+
+    reply_markup = InlineKeyboardMarkup(subject_buttons + [[InlineKeyboardButton("Go Back", callback_data="go_back")]])
+
+    query.edit_message_text(text=f'{context.user_data[user_id]["branch"]} branch and semester {context.user_data[user_id]["semester"]}. '
+                                 f'Please select a subject:',
+                            reply_markup=reply_markup)
+
+    return SUBJECT
+
+# Handler for subject selection
+def select_subject(update, context):
+    query = update.callback_query
+    user_id = str(query.from_user.id)
+    if query.data == 'go_back':
+        semester_buttons = [
+        [InlineKeyboardButton("SEM I", callback_data="1")],
+        [InlineKeyboardButton("SEM II", callback_data="2")],
+        [InlineKeyboardButton("SEM III", callback_data="3")] , 
+        [InlineKeyboardButton("SEM IV", callback_data="4")] , 
+        [InlineKeyboardButton("SEM V", callback_data="5")] , 
+        [InlineKeyboardButton("SEM VI", callback_data="6")] , 
+        [InlineKeyboardButton("SEM VII", callback_data="7")],
+        [InlineKeyboardButton("OPEN ELECTIVES", callback_data="OE")]]
+        # Add more semesters if needed
+        reply_markup = InlineKeyboardMarkup(semester_buttons)
+        random_message = random.choice([
+        "📚 Please select your semester from the options below:",
+        "🎓 Choose your semester from the list below:",
+        "⏳ Let's find notes for your specific semester. Please select it:",
+        "📖 Select your semester to access the corresponding notes:",
+        "🎯 Pick your semester from the choices below to continue:"
+        ])
+        query.edit_message_text(text=random_message, reply_markup=reply_markup)
+        return SEMESTER
+
+    context.user_data[user_id]['subject'] = query.data
+
+    unit_buttons = [
+        [InlineKeyboardButton("Unit 1", callback_data="1")] , 
+         [InlineKeyboardButton("Unit 2", callback_data="2")],
+        [InlineKeyboardButton("Unit 3", callback_data="3")]  , 
+         [InlineKeyboardButton("Unit 4", callback_data="4")],
+         [InlineKeyboardButton("Unit 5", callback_data="5")],
+         [InlineKeyboardButton("PREVIOUS YEAR PAPERS", callback_data="qnpaper")],
+        [InlineKeyboardButton("Go Back", callback_data="go_back_subject")]
+    ]
+    reply_markup = InlineKeyboardMarkup(unit_buttons)
+
+    random_message = random.choice([
+        f"📚 You've selected {context.user_data[user_id]['subject']}. Please choose the unit you want notes from, {context.user_data[user_id]['name']}:",
+        f"📖 You've picked {context.user_data[user_id]['subject']}. Select the unit, {context.user_data[user_id]['name']}, to access the corresponding notes:",
+        f"🎯 For {context.user_data[user_id]['subject']}, pick the unit below to get the notes:",
+        f"📒 With {context.user_data[user_id]['subject']}, select the unit to view the relevant notes, {context.user_data[user_id]['name']}:",
+        f"📚 Great choice on {context.user_data[user_id]['subject']}. Please select the unit for the notes, {context.user_data[user_id]['name']}:"
+    ])
+    query.edit_message_text(text=random_message, reply_markup=reply_markup)
+    return UNIT
+
+# Handler for unit selection
+def select_unit(update, context):
+    query = update.callback_query
+    user_id = str(query.from_user.id)
+    if query.data == 'go_back_subject':
+        subject_buttons = []
+        branch = context.user_data[user_id]['branch']
+        semester = context.user_data[user_id]['semester']
+        if branch in subjects and semester in subjects[branch]:
+            semester_subjects = subjects[branch][semester]
+            for subject in semester_subjects:
+                subject_buttons.append([InlineKeyboardButton(subject, callback_data=subject)])
+
+        reply_markup = InlineKeyboardMarkup(subject_buttons + [[InlineKeyboardButton("Go Back", callback_data="go_back")]])
+        random_message = random.choice([
+        "📚 Select a subject from the options below:",
+        "🎓 Choose a subject from the list below:",
+        "⏳ Let's find notes for a specific subject. Please select one:",
+        "📖 Select a subject to access the corresponding notes:",
+        "🎯 Pick a subject from the choices below to continue:"
+        ])
+        query.edit_message_text(text=random_message, reply_markup=reply_markup)
+        return SUBJECT
+    
+    context.user_data[user_id]['unit'] = query.data
+    subject = context.user_data[user_id]['subject']
+    unit = context.user_data[user_id]['unit']
+    name =context.user_data[user_id]['name']
+
+    file_name = f'{subject}_{unit}.pdf'
+    file_path = os.path.join(os.path.dirname(__file__), file_name)
+
+    if os.path.exists(file_path):
+    # Send the PDF file
+        update.effective_message.reply_document(document=open(file_path, 'rb'))
+        success_messages = [
+            f"📚 Here you go, {name}! These are the notes for {subject} Unit {unit}! Enjoy! 🎉",
+            f"📖 {name}, here are the notes you requested for {subject} Unit {unit}. Happy studying! 📚",
+            f"🔖 {name}, take a look at the notes for {subject} Unit {unit}. Hope you find them helpful! 📝"
+        ]
+        query.edit_message_text(random.choice(success_messages))
+    else:
+        error_messages = [
+            "⚠️ Oops! The PDF file for the requested notes was not found. Please try again later. 📂",
+            "❌ Sorry, the notes for the specified unit are currently unavailable. Please check back later. 📚",
+            "⚙️ We apologize, but the PDF file you requested is currently not available. Please try again later. 📄",
+            "🚫 We couldn't find the PDF file for the requested notes. Please try again or contact support. 📥",
+            "❗️ Apologies, but it seems that the notes for the specified unit are not available at the moment. 📋"
+        ]
+        query.edit_message_text(random.choice(error_messages))
+
+    subject_buttons = []
+    branch = context.user_data[user_id]['branch']
+    semester = context.user_data[user_id]['semester']
+    if branch in subjects and semester in subjects[branch]:
+        semester_subjects = subjects[branch][semester]
+        for subject in semester_subjects:
+            subject_buttons.append([InlineKeyboardButton(subject, callback_data=subject)])
+
+    reply_markup = InlineKeyboardMarkup(subject_buttons + [[InlineKeyboardButton("Go Back", callback_data="go_back")]])
+    random_message = random.choice([
+        "📚 Please select the next subject you want to study from:",
+        "🎓 Choose the next subject you'd like to study from the list below:",
+        "⏳ Let's continue by selecting the next subject you want to study:",
+        "📖 Select the next subject you'd like to explore and study:",
+        "🎯 Pick the next subject you want to study from the choices below:"
+    ])
+    update.effective_message.reply_text(text=random_message, reply_markup=reply_markup)
+    return SUBJECT
+
+
+# Handler for unknown commands
+def unknown(update, context):
+    user_id = str(update.effective_user.id)
+    if user_id in context.user_data:
+        del context.user_data[user_id]
+    update.message.reply_text('Unknown command! Please try again.')
+
+# Handler for canceling the conversation
+def cancel(update, context):
+    update.message.reply_text('Conversation canceled.')
+
+# Main function
+def main():
+    # Get the Telegram bot token from an environment variable
+    token = '5899676107:AAGI7rNo1Av3pAJH0MIbxdHuV8QA8RJWPLs'
+
+    if token is None:
+        print('Please set the TELEGRAM_BOT_TOKEN environment variable.')
+        return
+
+    # Create the Updater and dispatcher
+    updater = Updater(token, use_context=True)
+    dp = updater.dispatcher
+
+    # Create the conversation handler
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+
+        states={
+            NAME: [MessageHandler(Filters.text, collect_name)],
+            CHECK: [CallbackQueryHandler(check)],
+            USN: [MessageHandler(Filters.text, validate_usn)],
+            SEMESTER: [CallbackQueryHandler(select_semester)],
+            SUBJECT: [CallbackQueryHandler(select_subject)],
+            UNIT: [CallbackQueryHandler(select_unit)],
+            UPLOADFILE: [MessageHandler(Filters.document | Filters.text | Filters.photo, upload_file)] , 
+            REPLACEFILE: [CallbackQueryHandler(replace_file)],
+        },
+
+        fallbacks=[]
+    )
+
+    # Add the conversation handler to the dispatcher
+    dp.add_handler(conv_handler)
+
+    # Add handler for unknown commands
+    # dp.add_handler(MessageHandler(Filters.command, unknown))
+
+    # Start the bot
+    updater.start_polling()
+
+    # Run the bot until you press Ctrl-C
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
